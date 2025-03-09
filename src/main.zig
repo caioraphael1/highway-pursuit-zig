@@ -1,34 +1,32 @@
-const std = @import("std");
+const rl = @import("raylib");
 
-pub fn main() !void {
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+pub fn main() anyerror!void {
+    // Initialization
+    //--------------------------------------------------------------------------------------
+    const screenWidth = 800;
+    const screenHeight = 450;
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
+    defer rl.closeWindow(); // Close window and OpenGL context
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
+    //--------------------------------------------------------------------------------------
 
-    try bw.flush(); // Don't forget to flush!
-}
+    // Main game loop
+    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+        // Update
+        //----------------------------------------------------------------------------------
+        // TODO: Update your variables here
+        //----------------------------------------------------------------------------------
 
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
+        // Draw
+        //----------------------------------------------------------------------------------
+        rl.beginDrawing();
+        defer rl.endDrawing();
 
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
+        rl.clearBackground(rl.Color.white);
+
+        rl.drawText("Congrats! You created your first window!", 190, 200, 20, rl.Color.light_gray);
+        //----------------------------------------------------------------------------------
+    }
 }

@@ -1,24 +1,89 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "cppdbg",
-      "request": "launch",
-      "args": [],
-      "stopAtEntry": false,
-      "externalConsole": true,
-      "cwd": "c:/Users/caior/Desktop/Meus Documentos/Programação/Zig/godot-zig-examples-master/src",
-      "program": "c:/Users/caior/Desktop/Meus Documentos/Programação/Zig/godot-zig-examples-master/src/build/Debug/outDebug",
-      "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
-      "setupCommands": [
+    "version": "0.2.0",
+    "configurations": [
+
+        // Launch Debug
         {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
-    }
-  ]
+            "name": "(vs) Launch (Debug)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "preLaunchTask": "Build (Debug)",
+            "cwd": "${workspaceFolder}\\zig-out",
+            "program": "${workspaceFolder}\\zig-out\\Debug\\x86_64-windows\\bin\\${workspaceFolderBasename}.exe",
+            "args": [],
+            "environment": [],
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "presentation": {
+                "hidden": false,
+                "group": "debug",
+                "order": 1,
+            },
+            "logging": {
+                "engineLogging": false,
+                "exceptions": true,
+                "moduleLoad": true,
+                "processExit": true,
+                "programOutput": true,
+                "threadExit": false,
+            },
+        },
+
+        // Launch Release
+        {
+            "name": "(vs) Launch (Release)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\zig-out\\Release\\x86_64-windows\\bin\\${workspaceFolderBasename}.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}\\zig-out",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build (Release)",
+            "presentation": {
+                "hidden": false,
+                "group": "release",
+                "order": 1
+            },
+        },
+
+        // Current Debug
+        {
+            "name": "(vs) Launch Current (Debug)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\zig-out\\Debug\\miscellaneous\\x86_64-windows\\${relativeFileDirname}\\${fileBasenameNoExtension}.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Current (Debug)",
+            "presentation": {
+                "hidden": false,
+                "group": "miscellaneous",
+                "order": 1,
+            },
+        },
+
+        // Current Test
+        {
+            "name": "(vs) Launch Current (Test)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}\\zig-out\\tests\\x86_64-windows\\${relativeFileDirname}\\${fileBasenameNoExtension}.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "Build Current (Test)",
+            "presentation": {
+                "hidden": false,
+                "group": "test",
+                "order": 1
+            },
+        },
+    ]
 }
