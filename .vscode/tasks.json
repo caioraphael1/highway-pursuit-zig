@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build (Debug)",
+            "label": "Zig Build (debug) -> Run",
             "type": "shell",
             "group": "build",
             "command": "zig",
@@ -12,7 +12,8 @@
                     "-Doptimize=Debug",
                     "-Dtarget=\"x86_64-windows\"",
                     "-p",
-                    "zig-out/Debug/x86_64-windows",
+                    "zig-out/debug/x86_64-windows",
+                    "run"
                 ]
             },
             "isBackground": false,
@@ -34,7 +35,39 @@
             }
         },
         {
-            "label": "Build (Release)",
+            "label": "Zig Build (debug)",
+            "type": "shell",
+            "group": "build",
+            "command": "zig",
+            "windows": {
+                "args": [
+                    "build",
+                    "-Doptimize=Debug",
+                    "-Dtarget=\"x86_64-windows\"",
+                    "-p",
+                    "zig-out/debug/x86_64-windows",
+                ]
+            },
+            "isBackground": false,
+            "problemMatcher": [
+                "$zig",
+                "$gcc",
+            ],
+            "icon": {
+                "color": "terminal.ansiBlue",
+                "id": "tools",
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        },
+        {
+            "label": "Zig Build (release)",
             "type": "shell",
             "group": "build",
             "command": "zig",
@@ -44,7 +77,7 @@
                     "-Doptimize=ReleaseFast",
                     "-Dtarget=\"x86_64-windows\"",
                     "-p",
-                    "zig-out/Release/x86_64-windows",
+                    "zig-out/release/x86_64-windows",
                 ]
             },
             "isBackground": false,
@@ -66,144 +99,34 @@
             }
         },
         {
-            "label": "Build Current (Debug)",
+            "label": "Zig Build (release) -> Run",
             "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true,
-                "close": false,
-                "group": "debug",
-                "revealProblems": "onProblem",
-            },
-            "dependsOn": "crate build folder for miscellaneous builds",
+            "group": "build",
             "command": "zig",
             "windows": {
                 "args": [
-                    "build-exe",
-                    "${file}",
-                    "-femit-bin=\"${workspaceFolder}\\zig-out\\Debug\\miscellaneous\\x86_64-windows\\${relativeFileDirname}\\${fileBasenameNoExtension}.exe\"",
-                    "-ODebug",
-                    "-Dtarget=\"x86_64-linux\"",
-                    "--debug-log",
-                    "codegen",
-                ],
+                    "build",
+                    "-Doptimize=ReleaseFast",
+                    "-Dtarget=\"x86_64-windows\"",
+                    "-p",
+                    "zig-out/release/x86_64-windows",
+                    "run"
+                ]
             },
-            "group": "build",
-            "icon": {
-                "color": "terminal.ansiBlue",
-                "id": "tools",
-            },
+            "isBackground": false,
             "problemMatcher": [
                 "$zig",
                 "$gcc",
             ],
-        },
-        {
-            "label": "Build Current (Test)",
-            "detail": "test current active zig file",
-            "type": "shell",
-            "command": "zig",
-            "dependsOn": "crate build folder for current test",
-            "windows": {
-                "args": [
-                    "test",
-                    "${file}",
-                    "-femit-bin=\"${workspaceFolder}\\zig-out\\tests\\x86_64-windows\\${relativeFileDirname}\\${fileBasenameNoExtension}.exe\"",
-                    "-Dtarget=\"x86_64-linux\"",
-                    "--test-no-exec"
-                ],
-            },
-            "problemMatcher": [
-                "$gcc",
-            ],
-            "group": "test",
             "icon": {
-                "color": "terminal.ansiRed",
-                "id": "beaker"
-            },
-            "runOptions": {
-                "instanceLimit": 5,
-                // "reevaluateOnRerun": true
-            },
-            "options": {
-                // "cwd": "${fileDirname}"
-                "cwd": "${workspaceFolder}"
+                "color": "terminal.ansiBlue",
+                "id": "tools",
             },
             "presentation": {
                 "echo": true,
-                "reveal": "always",
+                "reveal": "silent",
                 "focus": false,
                 "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true
-            }
-        },
-        {
-            "label": "crate build folder for current test",
-            "type": "shell",
-            "detail": "helper for current test file, create build folder for current active file",
-            "windows": {
-                "command": ".vscode\\scripts\\make_dir.bat",
-                "args": [
-                    "\"${workspaceFolder}\\zig-out\\tests\\x86_64-windows\\${relativeFileDirname}\""
-                ],
-            },
-            "problemMatcher": [],
-            "group": {
-                "kind": "test",
-                "isDefault": false,
-            },
-            "promptOnClose": false,
-            "isBackground": true,
-            "hide": true,
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "runOptions": {
-                "instanceLimit": 10
-            },
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            }
-        },
-        {
-            "label": "crate build folder for miscellaneous builds",
-            "type": "shell",
-            "detail": "helper for current test file, create build folder for current active file",
-            "windows": {
-                "command": ".vscode\\scripts\\make_dir.bat",
-                "args": [
-                    "\"${workspaceFolder}\\zig-out\\Debug\\miscellaneous\\x86_64-windows\\${relativeFileDirname}\""
-                ],
-            },
-            "problemMatcher": [],
-            "group": {
-                "kind": "test",
-                "isDefault": false,
-            },
-            "promptOnClose": false,
-            "isBackground": true,
-            "hide": true,
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "runOptions": {
-                "instanceLimit": 10
-            },
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
                 "showReuseMessage": true,
                 "clear": false
             }
