@@ -1,32 +1,55 @@
-const rl = @import("raylib");
+const Core = @import("core.zig");
+
+const rl = Core.Raylib;
+const Car = Core.Car;
+const Debug = Core.Debug;
+
+const Color = rl.Color;
+const KeyboardKey = rl.KeyboardKey;
+const Vector2 = rl.Vector2;
+const Texture = rl.Texture2D;
+const Rectangle = rl.Rectangle;
 
 pub fn main() anyerror!void {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const screenWidth = 800;
-    const screenHeight = 450;
+    rl.setConfigFlags(.{ .window_resizable = true });
+    rl.initWindow(1280, 720, "Highway Pursuit");
+    defer rl.closeWindow();
+    rl.setTargetFPS(60);
 
-    rl.initWindow(screenWidth, screenHeight, "raylib-zig [core] example - basic window");
-    defer rl.closeWindow(); // Close window and OpenGL context
+    var debug = Debug{};
 
-    rl.setTargetFPS(60); // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
+    var carrinho = try Car.init("S:/zig/highway-pursuit-zig/assets/textures/carrinho.png");
+    defer carrinho.deinit();
 
-    // Main game loop
-    while (!rl.windowShouldClose()) { // Detect window close button or ESC key
+    while (!rl.windowShouldClose()) {
+        // Input
+        if (rl.isKeyReleased(KeyboardKey.f1)) {
+            debug.isVisible = !debug.isVisible;
+        }
+
         // Update
-        //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
-        //----------------------------------------------------------------------------------
+        debug.height = @as(f32, @floatFromInt(rl.getScreenHeight()));
+
+        if (debug.carShouldRotate) {
+            // Anima os frames e garante que não exceda o total
+            carrinho.frameIndex += 1;
+            if (carrinho.frameIndex >= 48) {
+                carrinho.frameIndex = 0;
+            }
+        }
+        carrinho.scale = debug.carScale;
+        carrinho.position = .{
+            .x = (@as(f32, @floatFromInt(rl.getScreenWidth())) - carrinho.width()) * 0.5,
+            .y = (@as(f32, @floatFromInt(rl.getScreenHeight())) - carrinho.height()) * 0.5,
+        };
 
         // Draw
-        //----------------------------------------------------------------------------------
         rl.beginDrawing();
-        defer rl.endDrawing();
 
-        rl.clearBackground(rl.Color.white);
+        carrinho.draw();
+        debug.draw();
 
-        rl.drawText("Congrats! You created your first window!", 190, 200, 20, rl.Color.light_gray);
-        //----------------------------------------------------------------------------------
+        rl.clearBackground(Color.ray_white);
+        rl.endDrawing();
     }
 }
