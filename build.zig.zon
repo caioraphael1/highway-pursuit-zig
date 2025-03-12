@@ -29,6 +29,7 @@
     // Tracks the earliest Zig version that the package considers to be a
     // supported use case.
     .minimum_zig_version = "0.15.0-dev.14+21620f3c6",
+        // Essa versão controla qual versão do LSP (ZSL) será baixada no VSCode.
 
     // This field is optional.
     // Each dependency must either provide a `url` and `hash`, or a `path`.
