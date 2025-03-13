@@ -31,9 +31,11 @@ pub fn build(b: *std.Build) void {
         .name = "highway-pursuit-zig",
         .root_module = exe_mod,
     });
+    
     exe.linkLibrary(raylib_artifact);
     exe.root_module.addImport("raylib", raylib);
     exe.root_module.addImport("raygui", raygui);
+
     b.installArtifact(exe);
 
 
