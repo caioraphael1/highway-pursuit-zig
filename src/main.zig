@@ -1,14 +1,39 @@
 const std = @import("std");
 const rl = @import("raylib");
 
-const i2f32 = @import("util.zig").i2f32;
-const f2i32 = @import("util.zig").f2i32;
+const tof32 = @import("util.zig").tof32;
+const toi32 = @import("util.zig").toi32;
 
 
 const MAX_BUILDINGS = 100;
 
+// Exemplo de acesso em structs.
+fn foo() void {
+    const a: rl.Vector2 = .{.x = 0, .y = 0};
+    const b = rl.Vector2.init(0, 0);
+    const c = rl.Vector2{.x = 0, .y = 0};
+    const d: rl.Vector2 = .init(0, 0);
+    const e: rl.Vector2 = .{0, 0};
+    const f: rl.Vector2 = @bitCast([_]f32{0,0});
+    const g = .{.x = 0, .y = 0};
 
-fn getWASD() rl.Vector2 {
+    _ = .{a, b, c, d, e, f, g}; 
+}
+
+
+const Player = struct {
+    pos: rl.Vector2,
+    vel: rl.Vector2 = rl.Vector2.init(0, 0),
+    
+    aceleracao: f16,
+    vel_max: f16,
+
+    sprite: rl.Texture2D
+};
+
+
+
+fn getWasd() rl.Vector2 {
     var vel = rl.Vector2.init(0, 0);
     if (rl.isKeyDown(.d)) {
         vel.x = 1;
@@ -24,69 +49,58 @@ fn getWASD() rl.Vector2 {
 }
 
 
-const Player = struct {
-    pos: rl.Vector2,
-    vel: rl.Vector2 = rl.Vector2.init(0, 0),
-
-    aceleracao: f16,
-    vel_max: f16,
-
-    sprite: rl.Texture2D,
-
-    fn mover(self: *Player, direcao: rl.Vector2) void {
-        var direcao_clamped = direcao.normalize();
-        self.vel = self.vel.lerp(direcao_clamped.scale(self.vel_max), self.aceleracao * rl.getFrameTime());
-        self.pos = self.pos.add(self.vel);
-    }
-
-    fn draw(self: *Player) void {
-        const rot: f32 = if (self.vel.equals(rl.Vector2.init(0, 0)) == 0) -self.vel.angle(rl.Vector2.init(0, -1))*(180.0/3.141516) else 0;
-
-        const tex_offset = rl.Vector2.init(
-            i2f32(@divFloor(self.sprite.width, 2)),
-            i2f32(@divFloor(self.sprite.height, 2))
-        );
-
-        const pos = self.pos.subtract(tex_offset);
-
-        std.debug.print("{any}\n", .{rot});
-        self.sprite.drawPro(
-            rl.Rectangle.init(
-                0, 
-                0, 
-                i2f32(self.sprite.width), 
-                i2f32(self.sprite.height)
-            ),
-            rl.Rectangle.init(
-                pos.x + tex_offset.x, 
-                pos.y + tex_offset.y, 
-                i2f32(self.sprite.width), 
-                i2f32(self.sprite.height)
-            ),
-            tex_offset,
-            rot,
-            rl.Color.white
-        );
-    }
-};
+fn mover(pos: *rl.Vector2, vel: *rl.Vector2, vel_max: f32, aceleracao: f32, direcao: rl.Vector2) void {
+    var direcao_clamped = direcao.normalize();
+    vel.* = vel.lerp(direcao_clamped.scale(vel_max), aceleracao * rl.getFrameTime());
+    pos.* = pos.add(vel.*);
+}
 
 
+fn draw(sprite: rl.Texture2D, pos: rl.Vector2, vel: rl.Vector2) void {
+    const rot: f32 = 
+        if (vel.equals(rl.Vector2.init(0, 0)) == 0) 
+            -vel.angle(rl.Vector2.init(0, -1)) * (180.0 / 3.141516) 
+        else 
+            0;
+
+    const tex_offset = rl.Vector2.init(
+        tof32(@divFloor(sprite.width, 2)),
+        tof32(@divFloor(sprite.height, 2))
+    );
+
+    // std.debug.print("{any}\n", .{rot});
+    sprite.drawPro(
+        rl.Rectangle.init(
+            0, 
+            0, 
+            tof32(sprite.width), 
+            tof32(sprite.height)
+        ),
+        rl.Rectangle.init(
+            pos.x, 
+            pos.y, 
+            tof32(sprite.width), 
+            tof32(sprite.height)
+        ),
+        tex_offset,
+        rot,
+        rl.Color.white
+    );
+}
 
 
-fn moveCamera(c: *rl.Camera2D, player: Player) void {
-    const target = rl.Vector2.init(player.pos.x, player.pos.y);
-    // c.target = rl.Vector2.init(@trunc(target.x), @trunc(target.y)).scale(virtualRatio);
-    c.target = rl.Vector2.init(@trunc(target.x), @trunc(target.y));
+fn moveCamera(c: *rl.Camera2D, pos: rl.Vector2) void {
+    // c.target = rl.Vector2.init(@trunc(pos.x), @trunc(pos.y)).scale(virtualRatio);
+    // c.target = rl.Vector2.init(@trunc(pos.x), @trunc(pos.y));
+    c.target = pos;
 }
 
 fn rotateCamera(c: *rl.Camera2D) void {
-    // Camera rotation controls
     if (rl.isKeyDown(.e)) {
         c.rotation -= 1;
     } else if (rl.isKeyDown(.q)) {
         c.rotation += 1;
     }
-    // Limit c rotation to 80 degrees (-40 to 40)
     c.rotation = rl.math.clamp(c.rotation, -40, 40);
 }
 
@@ -145,6 +159,7 @@ pub fn main() anyerror!void {
         // .window_undecorated = true 
         });
 
+    // ScreenCamera
     var screenCamera = rl.Camera2D{
         .target = rl.Vector2.init(0, 0),
         .offset = rl.Vector2.init(0, 0),
@@ -164,19 +179,19 @@ pub fn main() anyerror!void {
 
     // RenderTex
     const renderTex = try rl.loadRenderTexture(worldCameraWidth, worldCameraHeight);
-    const virtualRatio: f32 = i2f32(screenWidth) / i2f32(worldCameraWidth);
+    const virtualRatio: f32 = tof32(screenWidth) / tof32(worldCameraWidth);
     const sourceRec = rl.Rectangle.init(
         0, 
         0,
-        i2f32(worldCameraWidth),
-        -i2f32(worldCameraHeight)
+        tof32(worldCameraWidth),
+        -tof32(worldCameraHeight)
             // The target's height is flipped (in the source Rectangle), due to OpenGL reasons
     );
     var destRec = rl.Rectangle.init(
         -virtualRatio, 
         -virtualRatio,
-        i2f32(screenWidth) + (virtualRatio * 2),
-        i2f32(screenHeight) + (virtualRatio * 2)
+        tof32(screenWidth) + (virtualRatio * 2),
+        tof32(screenHeight) + (virtualRatio * 2)
     );
 
 
@@ -184,6 +199,7 @@ pub fn main() anyerror!void {
 // Entidades
 //--------------------------------------------------------------------------------------
 
+    // Player
     const tex_name: [:0]const u8 = try std.fmt.allocPrintZ(allocator, "{s}{s}", .{cwd, "/assets/race-car.png"});
     defer allocator.free(tex_name);
     const player_sprite = rl.Texture2D.init(tex_name) catch {
@@ -200,22 +216,22 @@ pub fn main() anyerror!void {
         .vel_max = 10,
 
         .sprite = player_sprite,
-
-        // .cam = worldCamera,
     };
 
+    
+    // Buildings
     var buildings: [MAX_BUILDINGS]rl.Rectangle = undefined;
     var buildColors: [MAX_BUILDINGS]rl.Color = undefined;
 
     var spacing: i32 = 0;
 
     for (0..buildings.len) |i| {
-        buildings[i].width = i2f32(rl.getRandomValue(50, 200));
-        buildings[i].height = i2f32(rl.getRandomValue(100, 800));
-        buildings[i].y = i2f32(screenHeight) - 130 - buildings[i].height;
-        buildings[i].x = i2f32(-6000 + spacing);
+        buildings[i].width = tof32(rl.getRandomValue(50, 200));
+        buildings[i].height = tof32(rl.getRandomValue(100, 800));
+        buildings[i].y = tof32(screenHeight) - 130 - buildings[i].height;
+        buildings[i].x = tof32(-6000 + spacing);
 
-        spacing += f2i32(buildings[i].width);
+        spacing += toi32(buildings[i].width);
 
         buildColors[i] = rl.Color.init(
             @as(u8, @intCast(rl.getRandomValue(200, 240))),
@@ -225,7 +241,7 @@ pub fn main() anyerror!void {
         );
     }
 
-    // Imagem
+    // Imagem da pista
     const str: [:0]const u8 = try std.fmt.allocPrintZ(allocator, "{s}{s}", .{cwd, "/assets/pista.png"});
     defer allocator.free(str);
     const imagem = rl.Texture2D.init(str) catch {
@@ -244,18 +260,16 @@ pub fn main() anyerror!void {
     //----------------------------------------------------------------------------------
 
         // Player
-        const direcao_mov = getWASD();
-        player.mover(direcao_mov);
+        mover(&player.pos, &player.vel, player.vel_max, player.aceleracao, getWasd());
 
         // WorldCamera
-        moveCamera(&worldCamera, player);
+        moveCamera(&worldCamera, player.pos);
         zoomCamera(&worldCamera);
         rotateCamera(&worldCamera);
-
         if (rl.isWindowResized()) {
-            destRec   = rl.Rectangle.init(-virtualRatio, -virtualRatio, 
-                i2f32(rl.getScreenWidth()) + (virtualRatio * 2), 
-                i2f32(rl.getScreenHeight()) + (virtualRatio * 2));
+            destRec = rl.Rectangle.init(-virtualRatio, -virtualRatio, 
+                tof32(rl.getScreenWidth()) + (virtualRatio * 2), 
+                tof32(rl.getScreenHeight()) + (virtualRatio * 2));
 
         }
 
@@ -277,26 +291,25 @@ pub fn main() anyerror!void {
             for (buildings, 0..) |building, i| {
                 rl.drawRectangleRec(building, buildColors[i]);
             }
-
             rl.drawRectangle(-6000, 320, 13000, 8000, rl.Color.dark_gray);
             rl.drawTextureRec(imagem, rl.Rectangle.init(50, 40, 320, 180), rl.Vector2.init(40, 40), rl.Color.init(120, 255, 255, 255));
 
             // Player.
-            player.draw();
+            draw(player.sprite, player.pos, player.vel);
 
             // Crosshair.
             rl.drawLine(
-                f2i32(worldCamera.target.x),
+                toi32(worldCamera.target.x),
                 -worldCameraHeight * 10,
-                f2i32(worldCamera.target.x),
+                toi32(worldCamera.target.x),
                 worldCameraHeight * 10,
                 rl.Color.green,
             );
             rl.drawLine(
                 -worldCameraWidth * 10,
-                f2i32(worldCamera.target.y),
+                toi32(worldCamera.target.y),
                 worldCameraWidth * 10,
-                f2i32(worldCamera.target.y),
+                toi32(worldCamera.target.y),
                 rl.Color.green,
             );
 
